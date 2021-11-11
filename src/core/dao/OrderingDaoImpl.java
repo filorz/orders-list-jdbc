@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Optional;
 
 public class OrderingDaoImpl implements BaseDao<Ordering> {
@@ -62,7 +63,7 @@ public class OrderingDaoImpl implements BaseDao<Ordering> {
                 while (rs.next()) {
                     ordering.setUserName(rs.getString("user_name"));
                     ordering.setId(Integer.parseInt(rs.getString("id")));
-                    ordering.setUpdatedAt(String.valueOf(rs.getString("updated_at")));
+                    ordering.setUpdatedAt(new Date());
                 }
                 return ordering;
             }
