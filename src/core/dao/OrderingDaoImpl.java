@@ -2,11 +2,11 @@ package core.dao;
 
 import core.config.ConnectorHandle;
 import core.models.Ordering;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 
 public class OrderingDaoImpl implements BaseDao<Ordering> {
 
@@ -70,7 +70,7 @@ public class OrderingDaoImpl implements BaseDao<Ordering> {
             printSQLException(e);
         }
 
-        return new Ordering();
+        return (Ordering) Optional.empty().get();
     }
 
     @Override
