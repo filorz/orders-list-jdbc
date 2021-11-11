@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class OrderingDaoImpl implements BaseDao {
+public class OrderingDaoImpl implements BaseDao<Ordering> {
 
     private static final String INSERT_USERS_SQL = "INSERT INTO ordering (user_name, updated_at) VALUES  (?, ?);";
     private static final String SELECT_USER_BY_ID = "select * from ordering where id =?";

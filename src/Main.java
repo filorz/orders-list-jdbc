@@ -11,7 +11,7 @@ public class Main {
 //        orderingDao.create("NameTest");
 
         // Update order in DB
-        Ordering newOrdering = orderingDao.get("22");
+        Ordering newOrdering = (Ordering) orderingDao.get("22");
         newOrdering.setUserName("New Order");
         newOrdering.setUpdatedAt("date");
 

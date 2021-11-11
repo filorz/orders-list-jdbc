@@ -2,13 +2,13 @@ package core.dao;
 
 import core.models.Ordering;
 
-public interface BaseDao {
+public interface BaseDao<T> {
 
     int create(String userName);
 
-    boolean update(Ordering ordering);
+    boolean update(T ordering);
 
-    Ordering get(String id);
+    T get(String id);
 
     String delete();
 
