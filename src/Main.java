@@ -1,10 +1,12 @@
-import core.dao.BaseDao;
+import core.dao.OrderingDao;
 import core.dao.OrderingDaoImpl;
 import core.models.Ordering;
 
+import java.util.Date;
+
 public class Main {
     public static void main(String[] args) {
-        BaseDao orderingDao = new OrderingDaoImpl();
+        OrderingDao orderingDao = new OrderingDaoImpl();
 //        orderingDao.deleteAll();
 
         // Create order in DB
@@ -13,7 +15,7 @@ public class Main {
         // Update order in DB
         Ordering newOrdering = (Ordering) orderingDao.get("22");
         newOrdering.setUserName("New Order");
-        newOrdering.setUpdatedAt("date");
+        newOrdering.setUpdatedAt(new Date());
 
         orderingDao.update(newOrdering);
 

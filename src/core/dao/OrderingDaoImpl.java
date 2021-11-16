@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.Optional;
 
-public class OrderingDaoImpl implements BaseDao<Ordering> {
+public class OrderingDaoImpl implements OrderingDao {
 
     private static final String INSERT_USERS_SQL = "INSERT INTO ordering (user_name, updated_at) VALUES  (?, ?);";
     private static final String SELECT_USER_BY_ID = "select * from ordering where id =?";
