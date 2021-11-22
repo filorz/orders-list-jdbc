@@ -21,7 +21,7 @@ public class OrderingDaoImpl implements OrderingDao {
     private static final String SELECT_ORDER_BY_ID = "SELECT * FROM ordering WHERE id = ?";
     private static final String DELETE_ALL_SQL = "TRUNCATE ordering CASCADE";
     private static final String UPDATE_USERS_SQL = "UPDATE ordering SET user_name = ?, updated_at = ? WHERE id = ?";
-    private static final String MARKED_ALL_ITEMS = "UPDATE ordering SET done = ? WHERE done = false";
+    private static final String MARKED_ALL_ITEMS = "UPDATE ordering SET done = ?, updated_at = ? WHERE done = false";
 
     private static final Logger logger = LoggerFactory.getLogger(OrderingDaoImpl.class);
 
@@ -123,6 +123,7 @@ public class OrderingDaoImpl implements OrderingDao {
              var preparedStatement = connection.prepareStatement(MARKED_ALL_ITEMS)) {
 
             preparedStatement.setBoolean(1, Boolean.TRUE);
+            preparedStatement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
             preparedStatement.executeUpdate();
             connection.commit();
         }
