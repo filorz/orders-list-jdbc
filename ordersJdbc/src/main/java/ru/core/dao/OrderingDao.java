@@ -6,14 +6,14 @@ import java.sql.SQLException;
 
 public interface OrderingDao {
 
-    boolean createOrder(String userName) throws SQLException;
+    int createOrder(Ordering ordering) throws SQLException, ClassNotFoundException;
 
-    boolean updateOrder(Ordering ordering) throws SQLException;
+    int updateOrder(Ordering ordering) throws SQLException;
 
-    Ordering getOrder(String id) throws SQLException;
+    Ordering getOrder(String id) throws SQLException, ClassNotFoundException;
 
-    public void markedOrder() throws SQLException;
+    void markedOrder() throws SQLException;
 
-    void deleteAll() throws SQLException;
+    void deleteAll() throws SQLException, ClassNotFoundException;
 
 }

@@ -11,6 +11,7 @@ import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 public class Main {
@@ -23,54 +24,41 @@ public class Main {
     public static void main(String[] args) {
         ConnectorHandle connectorHandle = new ConnectorHandle(URL, USER, PASSWORD);
 
-        OrderingDao orderingDao = new OrderingDaoImpl(connectorHandle);
         OrderingItemDao orderingItemDao = new OrderingItemDaoImpl(connectorHandle);
+        OrderingDao orderingDao = new OrderingDaoImpl(connectorHandle, orderingItemDao);
 
-        // Create order in DB
-//        try {
-//            Boolean isCreate = orderingDao.createOrder("NameTest");
-//        } catch (SQLException e) {
-//            logger.info(e.getMessage());
-//        }
-
-        // Add item for Ordering in DB
-//        try {
-//            Ordering ordering = orderingDao.getOrder("11");
-//            OrderingItem orderingItem = new OrderingItem();
-//            orderingItem.setOrderingId(ordering.getId());
-//            orderingItem.setItemName("Toy");
-//            orderingItem.setItemCount(2);
-//            orderingItem.setItemPrice("200");
-//
-//            ordering.setOrderingItems(Collections.singletonList(orderingItem));
-//            orderingItemDao.addItem(orderingItem);
-//        } catch (SQLException e) {
-//            logger.info(e.getMessage());
-//        }
-//
-//        // Update item count for Ordering in DB
-//        try {
-//            orderingItemDao.updateItemCount("9", 20);
-//        } catch (SQLException e) {
-//            logger.info(e.getMessage());
-//        }
-
-        // Marked all items order
         try {
+//         Clean rows in DB
+            orderingDao.deleteAll();
+
+//         Create order in DB and Add item for Ordering in DB
+            Ordering ordering = new Ordering("NameTest", 10, LocalDateTime.now());
+
+            OrderingItem orderingItem = new OrderingItem();
+            orderingItem.setOrderingId(ordering.getId());
+            orderingItem.setItemName("Toy");
+            orderingItem.setItemCount(2);
+            orderingItem.setItemPrice("200");
+            ordering.setOrderingItems(Collections.singletonList(orderingItem));
+
+            int orderId = orderingDao.createOrder(ordering);
+
+            Ordering orderingFromDb = orderingDao.getOrder(String.valueOf(orderId));
+
+//         Update item count for Ordering in DB
+            orderingItemDao.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
+
+//         Marked all items order
             orderingDao.markedOrder();
-        } catch (SQLException e) {
+
+//         Update ordering entity in DB
+            orderingFromDb.setUserName("Update User Name");
+            orderingFromDb.setUpdatedAt(LocalDateTime.now());
+
+            orderingDao.updateOrder(orderingFromDb);
+
+        } catch (Exception e) {
             logger.info(e.getMessage());
         }
-
-
-//        orderingDao.deleteAll();
-
-//        Ordering newOrdering = orderingDao.get("22");
-//        newOrdering.setUserName("New Order");
-//        newOrdering.setUpdatedAt(new Date());
-
-//        orderingDao.updateOrder(newOrdering);
-
-
     }
 }

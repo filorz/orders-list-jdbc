@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.core.config.ConnectorHandle;
 import ru.core.dao.OrderingDao;
+import ru.core.dao.OrderingItemDao;
+import ru.core.dao.exeptions.DataBaseOperationException;
 import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
 
@@ -11,60 +13,77 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class OrderingDaoImpl implements OrderingDao {
 
     private static final String INSERT_ORDER_SQL = "INSERT INTO ordering (user_name, updated_at) VALUES  (?, ?);";
-    private static final String SELECT_ORDER_BY_ID = "select * from ordering where id = ?";
-    private static final String SELECT_ORDER_ITEMS_BY_ORDER = "select * from ordering_items where ordering_id = ?";
-    private static final String DELETE_ALL_SQL = "delete from ordering";
-    private static final String UPDATE_USERS_SQL = "update ordering set user_name = ?,updated_at= ? where id = ?;";
+    private static final String SELECT_ORDER_BY_ID = "SELECT * FROM ordering WHERE id = ?";
+    private static final String DELETE_ALL_SQL = "TRUNCATE ordering CASCADE";
+    private static final String UPDATE_USERS_SQL = "UPDATE ordering SET user_name = ?, updated_at = ? WHERE id = ?";
     private static final String MARKED_ALL_ITEMS = "UPDATE ordering SET done = ? WHERE done = false";
 
     private static final Logger logger = LoggerFactory.getLogger(OrderingDaoImpl.class);
 
     private final ConnectorHandle connectorHandle;
+    private final OrderingItemDao orderingItemDao;
 
-    public OrderingDaoImpl(ConnectorHandle connectorHandle) {
+    public OrderingDaoImpl(ConnectorHandle connectorHandle, OrderingItemDao orderingItemDao) {
         this.connectorHandle = connectorHandle;
+        this.orderingItemDao = orderingItemDao;
     }
 
     @Override
-    public boolean createOrder(String name) throws SQLException {
+    public int createOrder(Ordering ordering) throws ClassNotFoundException {
         try (var connection = connectorHandle.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ORDER_SQL)) {
+             var preparedStatement = connection.prepareStatement(INSERT_ORDER_SQL, Statement.RETURN_GENERATED_KEYS)) {
+
             LocalDateTime dateTime = LocalDateTime.now();
 
-            preparedStatement.setString(1, name);
+            preparedStatement.setString(1, ordering.getUserName());
             preparedStatement.setTimestamp(2, Timestamp.valueOf(dateTime));
-            System.out.println(preparedStatement);
-            preparedStatement.execute();
-            connection.commit();
-            logger.info("create order for name:{}", name);
 
-            return true;
+            preparedStatement.executeUpdate();
+            connection.commit();
+            logger.info("create order for name:{}", ordering.getUserName());
+
+            var rs = preparedStatement.getGeneratedKeys();
+            rs.next();
+            ordering.setId(rs.getInt(1));
+            int orderItemId = orderingItemDao.addItem(ordering);
+            ordering.getOrderingItems().get(0).setId(orderItemId);
+
+            return rs.getInt(1);
+
+        } catch (SQLException ex) {
+            throw new DataBaseOperationException("executeInsert error", ex);
         }
     }
 
     @Override
-    public boolean updateOrder(Ordering ordering) throws SQLException {
-        boolean rowUpdated = false;
-        try (Connection connection = connectorHandle.getConnection();
-             PreparedStatement statement = connection.prepareStatement(UPDATE_USERS_SQL);) {
+    public int updateOrder(Ordering ordering) {
+        try (var connection = connectorHandle.getConnection();
+             var statement = connection.prepareStatement(UPDATE_USERS_SQL, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, ordering.getUserName());
             statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
             statement.setInt(3, ordering.getId());
 
-            rowUpdated = statement.executeUpdate() > 0;
+            statement.executeUpdate();
+            connection.commit();
 
             logger.info("update order:{}", ordering.getId());
-        }
 
-        return rowUpdated;
+            var rs = statement.getGeneratedKeys();
+            rs.next();
+            return rs.getInt(1);
+
+        } catch (SQLException ex) {
+            throw new DataBaseOperationException("executeInsert error", ex);
+        }
     }
 
     @Override
-    public Ordering getOrder(String id) throws SQLException {
+    public Ordering getOrder(String id) throws SQLException, ClassNotFoundException {
         var ordering = new Ordering();
 
         try (var connection = connectorHandle.getConnection();
@@ -72,8 +91,6 @@ public class OrderingDaoImpl implements OrderingDao {
             statement.setInt(1, Integer.parseInt(id));
 
             ResultSet rs = statement.executeQuery();
-            connection.commit();
-
             if (rs != null) {
                 while (rs.next()) {
                     ordering.setUserName(rs.getString("user_name"));
@@ -81,31 +98,10 @@ public class OrderingDaoImpl implements OrderingDao {
                     ordering.setUpdatedAt(LocalDateTime.now());
                 }
             }
-        }
 
-        try (var connection = connectorHandle.getConnection();
-             var statement = connection.prepareStatement(SELECT_ORDER_ITEMS_BY_ORDER)) {
-            statement.setInt(1, Integer.parseInt(id));
-
-            ResultSet rs = statement.executeQuery();
-            connection.commit();
-
-            List<OrderingItem> itemList = new ArrayList<>();
-
-            if (rs != null) {
-                while (rs.next()) {
-                    OrderingItem orderingItem = new OrderingItem();
-                    orderingItem.setOrderingId(rs.getInt("ordering_id"));
-                    orderingItem.setItemName(rs.getString("item_name"));
-                    orderingItem.setItemPrice(rs.getString("item_price"));
-                    orderingItem.setItemCount(rs.getInt("item_count"));
-
-                    itemList.add(orderingItem);
-                }
-
-                if (!itemList.isEmpty()) {
-                    ordering.setOrderingItems(itemList);
-                }
+            var orderingList = orderingItemDao.findAll(String.valueOf(ordering.getId()));
+            if (!orderingList.isEmpty()) {
+                ordering.setOrderingItems(orderingList);
             }
         }
 
@@ -114,17 +110,17 @@ public class OrderingDaoImpl implements OrderingDao {
 
     @Override
     public void deleteAll() throws SQLException {
-        try (Connection connection = connectorHandle.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ALL_SQL)) {
+        try (var connection = connectorHandle.getConnection();
+             var preparedStatement = connection.prepareStatement(DELETE_ALL_SQL)) {
             preparedStatement.executeUpdate();
-
+            connection.commit();
         }
     }
 
     @Override
     public void markedOrder() throws SQLException {
         try (var connection = connectorHandle.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(MARKED_ALL_ITEMS)) {
+             var preparedStatement = connection.prepareStatement(MARKED_ALL_ITEMS)) {
 
             preparedStatement.setBoolean(1, Boolean.TRUE);
             preparedStatement.executeUpdate();

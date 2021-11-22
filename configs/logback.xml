@@ -21,7 +21,7 @@
     </appender>
 
 
-    <logger name="ru.otus.logging.ex02.LoggerConfigExample" level="info" additivity="true">
+    <logger name="ru.core.logging.ex02.LoggerConfigExample" level="info" additivity="true">
         <appender-ref ref="APP_LOG" />
     </logger>
 

@@ -14,8 +14,7 @@ public class Ordering {
     public Ordering() {
     }
 
-    public Ordering(int id, String itemName, int itemCount, LocalDateTime updatedAt) {
-        this.id = id;
+    public Ordering(String itemName, int itemCount, LocalDateTime updatedAt) {
         this.userName = itemName;
         this.done = itemCount;
         this.updatedAt = updatedAt;

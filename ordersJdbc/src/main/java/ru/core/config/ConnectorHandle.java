@@ -7,18 +7,18 @@ import java.sql.SQLException;
 
 public class ConnectorHandle {
 
-    private final String URL;
-    private final String USER;
-    private final String PASSWORD;
+    private final String url;
+    private final String user;
+    private final String password;
 
     public ConnectorHandle(String url, String user, String password) {
-        URL = url;
-        USER = user;
-        PASSWORD = password;
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
 
     public Connection getConnection() throws SQLException {
-        var dataSource = new DriverManagerDataSource(URL, USER, PASSWORD);
+        var dataSource = new DriverManagerDataSource(url, user, password);
 
         return dataSource.getConnection();
     }

@@ -5,8 +5,8 @@ public class OrderingItem {
     private int id;
     private int orderingId;
     private String itemName;
-    int itemCount;
-    String itemPrice;
+    private int itemCount;
+    private String itemPrice;
 
     public OrderingItem(int id, int orderingId, String itemName, int itemCount, String itemPrice) {
         this.id = id;
