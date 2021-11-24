@@ -9,6 +9,10 @@ import ru.core.dao.impl.OrderingDaoImpl;
 import ru.core.dao.impl.OrderingItemDaoImpl;
 import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
+import ru.core.services.OrderingItemService;
+import ru.core.services.OrderingSerive;
+import ru.core.services.impl.OrderingItemServiceImpl;
+import ru.core.services.impl.OrderingServiceImpl;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -25,11 +29,14 @@ public class Main {
         ConnectorHandle connectorHandle = new ConnectorHandle(URL, USER, PASSWORD);
 
         OrderingItemDao orderingItemDao = new OrderingItemDaoImpl(connectorHandle);
-        OrderingDao orderingDao = new OrderingDaoImpl(connectorHandle, orderingItemDao);
+        OrderingDao orderingDao = new OrderingDaoImpl(connectorHandle);
+
+        OrderingSerive orderingSerive = new OrderingServiceImpl(orderingDao, orderingItemDao);
+        OrderingItemService itemService = new OrderingItemServiceImpl(orderingItemDao);
 
         try {
 //         Clean rows in DB
-            orderingDao.deleteAll();
+            orderingSerive.deleteAll();
 
 //         Create order in DB and Add item for Ordering in DB
             Ordering ordering = new Ordering("NameTest", 10, LocalDateTime.now());
@@ -41,21 +48,21 @@ public class Main {
             orderingItem.setItemPrice("200");
             ordering.setOrderingItems(Collections.singletonList(orderingItem));
 
-            int orderId = orderingDao.createOrder(ordering);
+            int orderId = orderingSerive.createOrder(ordering);
 
-            Ordering orderingFromDb = orderingDao.getOrder(String.valueOf(orderId));
+            Ordering orderingFromDb = orderingSerive.getOrder(String.valueOf(orderId));
 
 //         Update item count for Ordering in DB
-            orderingItemDao.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
+            itemService.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
 
 //         Marked all items order
-            orderingDao.markedOrder();
+            orderingSerive.markedOrder();
 
 //         Update ordering entity in DB
             orderingFromDb.setUserName("Update User Name");
             orderingFromDb.setUpdatedAt(LocalDateTime.now());
 
-            orderingDao.updateOrder(orderingFromDb);
+            orderingSerive.updateOrder(orderingFromDb);
 
         } catch (Exception e) {
             logger.info(e.getMessage());

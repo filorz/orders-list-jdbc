@@ -26,15 +26,13 @@ public class OrderingDaoImpl implements OrderingDao {
     private static final Logger logger = LoggerFactory.getLogger(OrderingDaoImpl.class);
 
     private final ConnectorHandle connectorHandle;
-    private final OrderingItemDao orderingItemDao;
 
-    public OrderingDaoImpl(ConnectorHandle connectorHandle, OrderingItemDao orderingItemDao) {
+    public OrderingDaoImpl(ConnectorHandle connectorHandle) {
         this.connectorHandle = connectorHandle;
-        this.orderingItemDao = orderingItemDao;
     }
 
     @Override
-    public int createOrder(Ordering ordering) throws ClassNotFoundException {
+    public int createOrder(Ordering ordering) {
         try (var connection = connectorHandle.getConnection();
              var preparedStatement = connection.prepareStatement(INSERT_ORDER_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -50,8 +48,6 @@ public class OrderingDaoImpl implements OrderingDao {
             var rs = preparedStatement.getGeneratedKeys();
             rs.next();
             ordering.setId(rs.getInt(1));
-            int orderItemId = orderingItemDao.addItem(ordering);
-            ordering.getOrderingItems().get(0).setId(orderItemId);
 
             return rs.getInt(1);
 
@@ -83,7 +79,7 @@ public class OrderingDaoImpl implements OrderingDao {
     }
 
     @Override
-    public Ordering getOrder(String id) throws SQLException, ClassNotFoundException {
+    public Ordering getOrder(String id) throws SQLException {
         var ordering = new Ordering();
 
         try (var connection = connectorHandle.getConnection();
@@ -97,11 +93,6 @@ public class OrderingDaoImpl implements OrderingDao {
                     ordering.setId(Integer.parseInt(rs.getString("id")));
                     ordering.setUpdatedAt(LocalDateTime.now());
                 }
-            }
-
-            var orderingList = orderingItemDao.findAll(String.valueOf(ordering.getId()));
-            if (!orderingList.isEmpty()) {
-                ordering.setOrderingItems(orderingList);
             }
         }
 
@@ -123,7 +114,7 @@ public class OrderingDaoImpl implements OrderingDao {
              var preparedStatement = connection.prepareStatement(MARKED_ALL_ITEMS)) {
 
             preparedStatement.setBoolean(1, Boolean.TRUE);
-            preparedStatement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
             preparedStatement.executeUpdate();
             connection.commit();
         }

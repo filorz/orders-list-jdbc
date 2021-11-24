@@ -40,6 +40,7 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
                     preparedStatement.setInt(4, Integer.parseInt(orderingItem.getItemPrice()));
                     preparedStatement.executeUpdate();
 
+                    orderingItem.setId(ordering.getId());
                     connection.commit();
                     logger.info("add item for ordering {}", orderingItem.getId());
                 }
