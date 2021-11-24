@@ -4,16 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.core.config.ConnectorHandle;
 import ru.core.dao.OrderingDao;
-import ru.core.dao.OrderingItemDao;
 import ru.core.dao.exeptions.DataBaseOperationException;
 import ru.core.models.Ordering;
-import ru.core.models.OrderingItem;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class OrderingDaoImpl implements OrderingDao {
 
@@ -43,7 +41,7 @@ public class OrderingDaoImpl implements OrderingDao {
 
             preparedStatement.executeUpdate();
             connection.commit();
-            logger.info("create order for name:{}", ordering.getUserName());
+            logger.info("create order for name:{}", ordering);
 
             var rs = preparedStatement.getGeneratedKeys();
             rs.next();
@@ -67,7 +65,7 @@ public class OrderingDaoImpl implements OrderingDao {
             statement.executeUpdate();
             connection.commit();
 
-            logger.info("update order:{}", ordering.getId());
+            logger.info("update order:{}", ordering);
 
             var rs = statement.getGeneratedKeys();
             rs.next();
@@ -95,6 +93,7 @@ public class OrderingDaoImpl implements OrderingDao {
                 }
             }
         }
+        logger.info("get order:{}", ordering);
 
         return ordering;
     }
@@ -105,6 +104,7 @@ public class OrderingDaoImpl implements OrderingDao {
              var preparedStatement = connection.prepareStatement(DELETE_ALL_SQL)) {
             preparedStatement.executeUpdate();
             connection.commit();
+            logger.info("all delete orders");
         }
     }
 
@@ -117,6 +117,8 @@ public class OrderingDaoImpl implements OrderingDao {
             preparedStatement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
             preparedStatement.executeUpdate();
             connection.commit();
+
+            logger.info("marker items");
         }
     }
 }

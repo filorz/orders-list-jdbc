@@ -3,14 +3,12 @@ package ru.core.dao.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.core.config.ConnectorHandle;
-import ru.core.dao.OrderingDao;
 import ru.core.dao.OrderingItemDao;
 import ru.core.dao.exeptions.DataBaseOperationException;
 import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +40,7 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
 
                     orderingItem.setId(ordering.getId());
                     connection.commit();
-                    logger.info("add item for ordering {}", orderingItem.getId());
+                    logger.info("add item for ordering {}", orderingItem);
                 }
 
                 var rs = preparedStatement.getGeneratedKeys();
@@ -103,6 +101,7 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
                     orderingList.add(orderingItem);
                 }
             }
+            logger.info("find all orders item {}", orderingList);
 
             return orderingList;
         }
