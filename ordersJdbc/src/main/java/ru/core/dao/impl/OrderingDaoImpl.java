@@ -2,15 +2,11 @@ package ru.core.dao.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.core.config.ConnectorHandle;
 import ru.core.dao.OrderingDao;
 import ru.core.dao.exeptions.DataBaseOperationException;
 import ru.core.models.Ordering;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 
 public class OrderingDaoImpl implements OrderingDao {
@@ -23,16 +19,15 @@ public class OrderingDaoImpl implements OrderingDao {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderingDaoImpl.class);
 
-    private final ConnectorHandle connectorHandle;
+    private final Connection connection;
 
-    public OrderingDaoImpl(ConnectorHandle connectorHandle) {
-        this.connectorHandle = connectorHandle;
+    public OrderingDaoImpl(Connection connectorHandle) {
+        this.connection = connectorHandle;
     }
 
     @Override
-    public int createOrder(Ordering ordering) {
-        try (var connection = connectorHandle.getConnection();
-             var preparedStatement = connection.prepareStatement(INSERT_ORDER_SQL, Statement.RETURN_GENERATED_KEYS)) {
+    public int createOrder(Ordering ordering, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(INSERT_ORDER_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             LocalDateTime dateTime = LocalDateTime.now();
 
@@ -40,7 +35,6 @@ public class OrderingDaoImpl implements OrderingDao {
             preparedStatement.setTimestamp(2, Timestamp.valueOf(dateTime));
 
             preparedStatement.executeUpdate();
-            connection.commit();
             logger.info("create order for name:{}", ordering);
 
             var rs = preparedStatement.getGeneratedKeys();
@@ -56,7 +50,7 @@ public class OrderingDaoImpl implements OrderingDao {
 
     @Override
     public int updateOrder(Ordering ordering) {
-        try (var connection = connectorHandle.getConnection();
+        try (var connection = this.connection;
              var statement = connection.prepareStatement(UPDATE_USERS_SQL, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, ordering.getUserName());
             statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
@@ -77,11 +71,10 @@ public class OrderingDaoImpl implements OrderingDao {
     }
 
     @Override
-    public Ordering getOrder(String id) throws SQLException {
+    public Ordering getOrder(String id, Connection connection) throws SQLException {
         var ordering = new Ordering();
 
-        try (var connection = connectorHandle.getConnection();
-             var statement = connection.prepareStatement(SELECT_ORDER_BY_ID)) {
+        try (var statement = connection.prepareStatement(SELECT_ORDER_BY_ID)) {
             statement.setInt(1, Integer.parseInt(id));
 
             ResultSet rs = statement.executeQuery();
@@ -100,7 +93,7 @@ public class OrderingDaoImpl implements OrderingDao {
 
     @Override
     public void deleteAll() throws SQLException {
-        try (var connection = connectorHandle.getConnection();
+        try (var connection = this.connection;
              var preparedStatement = connection.prepareStatement(DELETE_ALL_SQL)) {
             preparedStatement.executeUpdate();
             connection.commit();
@@ -110,7 +103,7 @@ public class OrderingDaoImpl implements OrderingDao {
 
     @Override
     public void markedOrder() throws SQLException {
-        try (var connection = connectorHandle.getConnection();
+        try (var connection = this.connection;
              var preparedStatement = connection.prepareStatement(MARKED_ALL_ITEMS)) {
 
             preparedStatement.setBoolean(1, Boolean.TRUE);

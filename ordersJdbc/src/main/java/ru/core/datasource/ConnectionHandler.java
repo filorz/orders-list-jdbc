@@ -10,11 +10,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-public class DriverManagerDataSource implements DataSource {
+public class ConnectionHandler implements DataSource {
     private DataSource dataSourcePool;
     private final String url;
 
-    public DriverManagerDataSource(String url, String user, String pwd) {
+    public ConnectionHandler(String url, String user, String pwd) {
         this.url = url;
         createConnectionPool(url, user, pwd);
     }

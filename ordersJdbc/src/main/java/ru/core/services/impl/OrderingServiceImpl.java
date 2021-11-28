@@ -2,27 +2,42 @@ package ru.core.services.impl;
 
 import ru.core.dao.OrderingDao;
 import ru.core.dao.OrderingItemDao;
+import ru.core.dao.exeptions.OrderingException;
 import ru.core.models.Ordering;
 import ru.core.services.OrderingSerive;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class OrderingServiceImpl implements OrderingSerive {
 
     private final OrderingDao orderingDao;
     private final OrderingItemDao orderingItemDao;
+    private final Connection connection;
 
-    public OrderingServiceImpl(OrderingDao orderingDao, OrderingItemDao orderingItemDao) {
+    public OrderingServiceImpl(OrderingDao orderingDao,
+                               OrderingItemDao orderingItemDao,
+                               Connection connection) {
         this.orderingDao = orderingDao;
         this.orderingItemDao = orderingItemDao;
+        this.connection = connection;
     }
 
     @Override
-    public int createOrder(Ordering ordering) throws SQLException, ClassNotFoundException {
-        int orderId = orderingDao.createOrder(ordering);
-        orderingItemDao.addItem(ordering);
+    public int createOrder(Ordering ordering) throws SQLException {
+        try (var connection = this.connection) {
+            try {
+                int orderId = orderingDao.createOrder(ordering, connection);
+                orderingItemDao.addItem(ordering, connection);
+                connection.commit();
 
-        return orderId;
+                return orderId;
+
+            } catch (Exception e) {
+                connection.rollback();
+                throw new OrderingException("create error: ", e);
+            }
+        }
     }
 
     @Override
@@ -32,11 +47,15 @@ public class OrderingServiceImpl implements OrderingSerive {
 
     @Override
     public Ordering getOrder(String id) throws SQLException, ClassNotFoundException {
-        Ordering ordering = orderingDao.getOrder(id);
-        var orderingList = orderingItemDao.findAll(String.valueOf(ordering.getId()));
+        Ordering ordering;
 
-        if (!orderingList.isEmpty()) {
-            ordering.setOrderingItems(orderingList);
+        try (var connection = this.connection) {
+            ordering = orderingDao.getOrder(id, connection);
+            var orderingList = orderingItemDao.findAll(String.valueOf(ordering.getId()), connection);
+
+            if (!orderingList.isEmpty()) {
+                ordering.setOrderingItems(orderingList);
+            }
         }
 
         return ordering;

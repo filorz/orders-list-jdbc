@@ -2,7 +2,6 @@ package ru.core.dao.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.core.config.ConnectorHandle;
 import ru.core.dao.OrderingItemDao;
 import ru.core.dao.exeptions.DataBaseOperationException;
 import ru.core.models.Ordering;
@@ -19,17 +18,16 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
     private static final String UPDATE_ITEM_COUNT = "UPDATE ordering_items SET item_count = ? WHERE id = ?";
     private static final String SELECT_ORDER_ITEMS_BY_ORDER = "SELECT * FROM ordering_items WHERE ordering_id = ?";
 
-    private final ConnectorHandle connectorHandle;
+    private final Connection connection;
 
-    public OrderingItemDaoImpl(ConnectorHandle connectorHandle) {
-        this.connectorHandle = connectorHandle;
+    public OrderingItemDaoImpl(Connection connectorHandle) {
+        this.connection = connectorHandle;
     }
 
     @Override
-    public int addItem(Ordering ordering) throws ClassNotFoundException {
+    public int addItem(Ordering ordering, Connection connection) {
         if (ordering.getOrderingItems() != null && !ordering.getOrderingItems().isEmpty()) {
-            try (var connection = connectorHandle.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS)) {
 
                 for (OrderingItem orderingItem : ordering.getOrderingItems()) {
                     preparedStatement.setInt(1, ordering.getId());
@@ -39,7 +37,6 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
                     preparedStatement.executeUpdate();
 
                     orderingItem.setId(ordering.getId());
-                    connection.commit();
                     logger.info("add item for ordering {}", orderingItem);
                 }
 
@@ -52,14 +49,14 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
             }
 
         } else {
-            throw new ClassNotFoundException();
+            throw new IllegalArgumentException();
         }
     }
 
     @Override
     public int updateItemCount(String entityId, int count) throws Exception {
         if (count > 0) {
-            try (var connection = connectorHandle.getConnection();
+            try (var connection = this.connection;
                  PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_ITEM_COUNT, Statement.RETURN_GENERATED_KEYS)) {
 
                 preparedStatement.setInt(1, count);
@@ -83,9 +80,8 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
     }
 
     @Override
-    public List<OrderingItem> findAll(String id) throws SQLException {
-        try (var connection = connectorHandle.getConnection();
-             var statement = connection.prepareStatement(SELECT_ORDER_ITEMS_BY_ORDER)) {
+    public List<OrderingItem> findAll(String id, Connection connection) throws SQLException {
+        try (var statement = connection.prepareStatement(SELECT_ORDER_ITEMS_BY_ORDER)) {
             statement.setInt(1, Integer.parseInt(id));
             ResultSet rs = statement.executeQuery();
 

@@ -2,18 +2,17 @@ package ru.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.core.config.ConnectorHandle;
 import ru.core.dao.OrderingDao;
 import ru.core.dao.OrderingItemDao;
 import ru.core.dao.impl.OrderingDaoImpl;
 import ru.core.dao.impl.OrderingItemDaoImpl;
+import ru.core.datasource.ConnectionHandler;
 import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
-import ru.core.services.OrderingItemService;
 import ru.core.services.OrderingSerive;
-import ru.core.services.impl.OrderingItemServiceImpl;
 import ru.core.services.impl.OrderingServiceImpl;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -26,13 +25,18 @@ public class Main {
     private static final String PASSWORD = "root";
 
     public static void main(String[] args) {
-        ConnectorHandle connectorHandle = new ConnectorHandle(URL, USER, PASSWORD);
+        ConnectionHandler driverManagerDataSource = new ConnectionHandler(URL, USER, PASSWORD);
+        Connection connection = null;
+        try {
+            connection = driverManagerDataSource.getConnection();
+        } catch (SQLException e) {
+            logger.info(e.getMessage());
+        }
 
-        OrderingItemDao orderingItemDao = new OrderingItemDaoImpl(connectorHandle);
-        OrderingDao orderingDao = new OrderingDaoImpl(connectorHandle);
+        OrderingItemDao orderingItemDao = new OrderingItemDaoImpl(connection);
+        OrderingDao orderingDao = new OrderingDaoImpl(connection);
 
-        OrderingSerive orderingSerive = new OrderingServiceImpl(orderingDao, orderingItemDao);
-        OrderingItemService itemService = new OrderingItemServiceImpl(orderingItemDao);
+        OrderingSerive orderingSerive = new OrderingServiceImpl(orderingDao, orderingItemDao, connection);
 
         try {
 //         Clean rows in DB
@@ -53,7 +57,7 @@ public class Main {
             Ordering orderingFromDb = orderingSerive.getOrder(String.valueOf(orderId));
 
 //         Update item count for Ordering in DB
-            itemService.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
+            orderingItemDao.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
 
 //         Marked all items order
             orderingSerive.markedOrder();
