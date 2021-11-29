@@ -6,29 +6,24 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
 public class ConnectionHandler implements DataSource {
     private DataSource dataSourcePool;
-    private final String url;
 
     public ConnectionHandler(String url, String user, String pwd) {
-        this.url = url;
         createConnectionPool(url, user, pwd);
     }
 
     @Override
     public Connection getConnection() throws SQLException {
-        return dataSourcePool.getConnection();
+        return getConnectionAutoCommit();
     }
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        var connection = DriverManager.getConnection(url, username, password);
-        connection.setAutoCommit(false);
-        return connection;
+        return getConnectionAutoCommit();
     }
 
     @Override
@@ -87,5 +82,12 @@ public class ConnectionHandler implements DataSource {
         config.setPassword(pwd);
 
         dataSourcePool = new HikariDataSource(config);
+    }
+
+    private Connection getConnectionAutoCommit() throws SQLException {
+        var connection = dataSourcePool.getConnection();
+        connection.setAutoCommit(true);
+
+        return connection;
     }
 }

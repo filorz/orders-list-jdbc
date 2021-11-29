@@ -9,12 +9,12 @@ public interface OrderingDao {
 
     int createOrder(Ordering ordering, Connection connection) throws SQLException, ClassNotFoundException;
 
-    int updateOrder(Ordering ordering) throws SQLException;
+    int updateOrder(Ordering ordering, Connection connection) throws SQLException;
 
     Ordering getOrder(String id, Connection connection) throws SQLException, ClassNotFoundException;
 
-    void markedOrder() throws SQLException;
+    void markedOrder(Connection connection) throws SQLException;
 
-    void deleteAll() throws SQLException, ClassNotFoundException;
+    void deleteAll(Connection connection) throws SQLException, ClassNotFoundException;
 
 }

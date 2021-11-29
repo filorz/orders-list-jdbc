@@ -1,6 +1,5 @@
 package ru.core.dao;
 
-import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
 
 import java.sql.Connection;
@@ -9,9 +8,9 @@ import java.util.List;
 
 public interface OrderingItemDao {
 
-    int addItem(Ordering ordering, Connection connection) throws SQLException, ClassNotFoundException;
+    int addItem(OrderingItem item, Connection connection) throws SQLException, ClassNotFoundException, IllegalAccessException;
 
-    int updateItemCount(String entityId, int count) throws Exception;
+    int updateItemCount(long entityId, int count, Connection connection) throws Exception;
 
     List<OrderingItem> findAll(String id, Connection connection) throws SQLException, ClassNotFoundException;
 

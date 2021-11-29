@@ -9,7 +9,9 @@ import ru.core.dao.impl.OrderingItemDaoImpl;
 import ru.core.datasource.ConnectionHandler;
 import ru.core.models.Ordering;
 import ru.core.models.OrderingItem;
+import ru.core.services.OrderingItemService;
 import ru.core.services.OrderingSerive;
+import ru.core.services.impl.OrderingItemServiceImpl;
 import ru.core.services.impl.OrderingServiceImpl;
 
 import java.sql.Connection;
@@ -33,14 +35,15 @@ public class Main {
             logger.info(e.getMessage());
         }
 
-        OrderingItemDao orderingItemDao = new OrderingItemDaoImpl(connection);
-        OrderingDao orderingDao = new OrderingDaoImpl(connection);
+        OrderingItemDao orderingItemDao = new OrderingItemDaoImpl();
+        OrderingDao orderingDao = new OrderingDaoImpl();
 
-        OrderingSerive orderingSerive = new OrderingServiceImpl(orderingDao, orderingItemDao, connection);
+        OrderingSerive orderingSerive = new OrderingServiceImpl(orderingDao, orderingItemDao);
+        OrderingItemService orderingItemService = new OrderingItemServiceImpl(orderingItemDao, orderingDao);
 
         try {
 //         Clean rows in DB
-            orderingSerive.deleteAll();
+            orderingSerive.deleteAll(connection);
 
 //         Create order in DB and Add item for Ordering in DB
             Ordering ordering = new Ordering("NameTest", 10, LocalDateTime.now());
@@ -52,21 +55,22 @@ public class Main {
             orderingItem.setItemPrice("200");
             ordering.setOrderingItems(Collections.singletonList(orderingItem));
 
-            int orderId = orderingSerive.createOrder(ordering);
+            int orderId = orderingSerive.createOrder(ordering, connection);
 
-            Ordering orderingFromDb = orderingSerive.getOrder(String.valueOf(orderId));
+            Ordering orderingFromDb = orderingSerive.getOrder(String.valueOf(orderId), connection);
 
 //         Update item count for Ordering in DB
-            orderingItemDao.updateItemCount(String.valueOf(orderingFromDb.getOrderingItems().get(0).getId()), 20);
+            orderingItemService.updateItemCount(orderingFromDb,
+                    orderingFromDb.getOrderingItems().get(0).getId(), 20, connection);
 
 //         Marked all items order
-            orderingSerive.markedOrder();
+            orderingSerive.markedOrder(connection);
 
 //         Update ordering entity in DB
             orderingFromDb.setUserName("Update User Name");
             orderingFromDb.setUpdatedAt(LocalDateTime.now());
 
-            orderingSerive.updateOrder(orderingFromDb);
+            orderingSerive.updateOrder(orderingFromDb, connection);
 
         } catch (Exception e) {
             logger.info(e.getMessage());

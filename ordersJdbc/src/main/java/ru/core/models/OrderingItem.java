@@ -2,8 +2,8 @@ package ru.core.models;
 
 public class OrderingItem {
 
-    private int id;
-    private int orderingId;
+    private long id;
+    private long orderingId;
     private String itemName;
     private int itemCount;
     private String itemPrice;
@@ -19,19 +19,19 @@ public class OrderingItem {
     public OrderingItem() {
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
-    public int getOrderingId() {
+    public long getOrderingId() {
         return orderingId;
     }
 
-    public void setOrderingId(int orderingId) {
+    public void setOrderingId(long orderingId) {
         this.orderingId = orderingId;
     }
 

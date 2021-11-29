@@ -4,10 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.core.dao.OrderingItemDao;
 import ru.core.dao.exeptions.DataBaseOperationException;
-import ru.core.models.Ordering;
+import ru.core.dao.exeptions.OrderingItemException;
 import ru.core.models.OrderingItem;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,51 +21,39 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
     private static final String UPDATE_ITEM_COUNT = "UPDATE ordering_items SET item_count = ? WHERE id = ?";
     private static final String SELECT_ORDER_ITEMS_BY_ORDER = "SELECT * FROM ordering_items WHERE ordering_id = ?";
 
-    private final Connection connection;
-
-    public OrderingItemDaoImpl(Connection connectorHandle) {
-        this.connection = connectorHandle;
-    }
-
     @Override
-    public int addItem(Ordering ordering, Connection connection) {
-        if (ordering.getOrderingItems() != null && !ordering.getOrderingItems().isEmpty()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS)) {
+    public int addItem(OrderingItem item, Connection connection) throws IllegalAccessException {
+        if (item == null) {
+            throw new IllegalAccessException();
+        }
+        try (var preparedStatement = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS)) {
 
-                for (OrderingItem orderingItem : ordering.getOrderingItems()) {
-                    preparedStatement.setInt(1, ordering.getId());
-                    preparedStatement.setString(2, orderingItem.getItemName());
-                    preparedStatement.setInt(3, orderingItem.getItemCount());
-                    preparedStatement.setInt(4, Integer.parseInt(orderingItem.getItemPrice()));
-                    preparedStatement.executeUpdate();
+            preparedStatement.setLong(1, item.getOrderingId());
+            preparedStatement.setString(2, item.getItemName());
+            preparedStatement.setInt(3, item.getItemCount());
+            preparedStatement.setInt(4, Integer.parseInt(item.getItemPrice()));
+            preparedStatement.executeUpdate();
 
-                    orderingItem.setId(ordering.getId());
-                    logger.info("add item for ordering {}", orderingItem);
-                }
+            item.setId(item.getOrderingId());
+            logger.info("add item for ordering {}", item);
 
-                var rs = preparedStatement.getGeneratedKeys();
-                rs.next();
-                return rs.getInt(1);
+            var rs = preparedStatement.getGeneratedKeys();
+            rs.next();
+            return rs.getInt(1);
 
-            } catch (SQLException ex) {
-                throw new DataBaseOperationException("execute insert error", ex);
-            }
-
-        } else {
-            throw new IllegalArgumentException();
+        } catch (SQLException ex) {
+            throw new DataBaseOperationException("execute insert error", ex);
         }
     }
 
     @Override
-    public int updateItemCount(String entityId, int count) throws Exception {
+    public int updateItemCount(long entityId, int count, Connection connection) {
         if (count > 0) {
-            try (var connection = this.connection;
-                 PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_ITEM_COUNT, Statement.RETURN_GENERATED_KEYS)) {
+            try (var preparedStatement = connection.prepareStatement(UPDATE_ITEM_COUNT, Statement.RETURN_GENERATED_KEYS)) {
 
                 preparedStatement.setInt(1, count);
-                preparedStatement.setInt(2, Integer.parseInt(entityId));
+                preparedStatement.setLong(2, entityId);
                 preparedStatement.executeUpdate();
-                connection.commit();
 
                 logger.info("update item count {}", count);
 
@@ -75,7 +66,7 @@ public class OrderingItemDaoImpl implements OrderingItemDao {
             }
 
         } else {
-            throw new Exception();
+            throw new OrderingItemException("wrong count items", new Exception());
         }
     }
 
