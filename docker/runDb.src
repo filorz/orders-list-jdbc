@@ -1,0 +1,7 @@
+docker run --rm --name pg-docker \
+-e POSTGRES_PASSWORD=root \
+-e POSTGRES_USER=root \
+-e POSTGRES_DB=jdbc_ordering \
+-e PGDATA=/var/lib/postgresql/data/pgdata \
+-p 5430:5432 \
+postgres:12
