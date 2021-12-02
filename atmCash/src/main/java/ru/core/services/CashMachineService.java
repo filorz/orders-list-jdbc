@@ -7,4 +7,6 @@ public interface CashMachineService {
 
     Cassette extraditionBySum(CashMachine cashMachine, long querySum) throws IllegalAccessException;
 
+    long balanceAmount(CashMachine cashMachine);
+
 }
