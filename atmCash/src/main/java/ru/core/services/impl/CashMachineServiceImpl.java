@@ -15,7 +15,6 @@ public class CashMachineServiceImpl implements CashMachineService {
     private static final Logger logger = Logger.getLogger(CashMachineServiceImpl.class.getName());
 
     public static final int EMPTY_SUMM = 0;
-    public static final int EMPTY_NOMINAL = 0;
 
     @Override
     public Cassette extraditionBySum(CashMachine cashMachine, long querySum) throws IllegalAccessException {
@@ -32,7 +31,7 @@ public class CashMachineServiceImpl implements CashMachineService {
                 int nominal = cassette.getNominal().getType();
                 int totalSumCassette = cassette.getCount() * nominal;
 
-                    if (querySum <= totalSumCassette && querySum % nominal == EMPTY_NOMINAL) {
+                    if (querySum <= totalSumCassette && querySum % nominal == 0) {
                         cassette.setCount(Math.toIntExact(cassette.getCount() - (querySum / nominal)));
                         cashMachine.getCassetteList().remove(cashMachine.getCassetteList().stream()
                                 .filter(c -> c.getNominal().getType() != Nominal.RUB_50.getType()).findFirst().get());
@@ -51,10 +50,5 @@ public class CashMachineServiceImpl implements CashMachineService {
         }
 
         throw new CassetteExtraditionException("cassette not find error in CashMachine", new Exception());
-    }
-
-    @Override
-    public long balanceAmount(CashMachine cashMachine) {
-        return cashMachine.getTotalSum();
     }
 }
