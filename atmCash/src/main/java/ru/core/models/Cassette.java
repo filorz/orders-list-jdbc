@@ -1,6 +1,6 @@
 package ru.core.models;
 
-public class Cassette {
+public class Cassette implements Cloneable {
 
     private Nominal nominal;
     private int count;
@@ -34,5 +34,10 @@ public class Cassette {
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    @Override
+    public Cassette clone() throws CloneNotSupportedException {
+        return (Cassette) super.clone();
     }
 }
