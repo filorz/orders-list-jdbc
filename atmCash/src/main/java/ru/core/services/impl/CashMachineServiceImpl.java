@@ -17,12 +17,14 @@ public class CashMachineServiceImpl implements CashMachineService {
     public static final int EMPTY_NOMINAL = 0;
 
     @Override
-    public Cassette extraditionBySum(CashMachine cashMachine, long querySum) throws IllegalAccessException {
+    public Cassette extraditionBySum(CashMachine cashMachine, long querySum) {
+
         if (cashMachine.getCassetteList().isEmpty()) {
-            throw new IllegalAccessException();
+            throw new IllegalArgumentException();
         }
 
-        if (querySum > EMPTY_SUM && querySum <= cashMachine.getTotalSum()) {
+        long totalSum = balanceAmount(cashMachine);
+        if (querySum > EMPTY_SUM && querySum <= totalSum) {
             List<Cassette> sortedList = cashMachine.getCassetteList().stream()
                     .sorted(Comparator.comparingInt(c -> c.getNominal().getType()))
                     .collect(Collectors.toList());
@@ -33,8 +35,12 @@ public class CashMachineServiceImpl implements CashMachineService {
 
                     if (querySum <= totalSumCassette && querySum % nominal == EMPTY_NOMINAL) {
                         cassette.setCount(Math.toIntExact(cassette.getCount() - (querySum / nominal)));
-                        cashMachine.getCassetteList().remove(cashMachine.getCassetteList().stream()
-                                .filter(c -> c.getNominal().getType() == nominal).findFirst().get());
+                        Cassette removeCassette = null;
+                        if (cashMachine.getCassetteList() != null && !cashMachine.getCassetteList().isEmpty()) {
+                            removeCassette = cashMachine.getCassetteList().stream()
+                                    .filter(c -> c.getNominal().getType() == nominal).findFirst().get();
+                        }
+                        cashMachine.getCassetteList().remove(removeCassette);
                         cashMachine.getCassetteList().add(cassette);
 
                         logger.info("extradition from cassette select sum: "
@@ -50,11 +56,6 @@ public class CashMachineServiceImpl implements CashMachineService {
         }
 
         throw new CassetteExtraditionException("cassette not find error in CashMachine", new Exception());
-    }
-
-    @Override
-    public long balanceAmount(CashMachine cashMachine) {
-        return cashMachine.getTotalSum();
     }
 
     @Override
@@ -87,5 +88,22 @@ public class CashMachineServiceImpl implements CashMachineService {
 
         groupAtm.setActiveAtm(uuid);
         groupAtm.setSavePoint(uuid, listNew);
+    }
+
+    @Override
+    public long balanceAmount(CashMachine cashMachine) {
+        int totalSum = 0;
+        if (cashMachine.getCassetteList() != null && !cashMachine.getCassetteList().isEmpty()) {
+            int nominal;
+            int count;
+
+            for (Cassette cassette : cashMachine.getCassetteList()) {
+                nominal = cassette.getNominal().getType();
+                count = cassette.getCount();
+                totalSum += nominal * count;
+            }
+        }
+
+        return totalSum;
     }
 }

@@ -35,12 +35,10 @@ public class Main {
         list2.add(cassette5);
         list2.add(cassette6);
 
-        CashMachine cashMachine = new CashMachine();
-        cashMachine.setCassetteList(list);
+        CashMachine cashMachine = new CashMachine(list);
         cashMachine.setOnlineStatus(true);
 
-        CashMachine cashMachine2 = new CashMachine();
-        cashMachine2.setCassetteList(list2);
+        CashMachine cashMachine2 = new CashMachine(list2);
         cashMachine2.setOnlineStatus(true);
 
         List<CashMachine> cashMachineList = new ArrayList<>();
@@ -86,7 +84,10 @@ public class Main {
 
             for (Map.Entry<String, List<CashMachine>> item : groupAtm.getSavePoint().entrySet()) {
                 for (CashMachine value : item.getValue()) {
-                    System.out.println(value.getTotalSum());
+                    for (Cassette cassette : value.getCassetteList()) {
+                        System.out.println(cassette.getNominal() + " " + cassette.getCount());
+                    }
+                    System.out.println();
                 }
             }
 

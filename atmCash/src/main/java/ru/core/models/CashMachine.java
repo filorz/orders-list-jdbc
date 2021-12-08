@@ -4,24 +4,11 @@ import java.util.*;
 
 public class CashMachine implements Cloneable {
 
-    private List<Cassette> cassetteList;
-    private int totalSum = 0;
+    private final List<Cassette> cassetteList;
     private boolean onlineStatus = true;
 
-    public long getTotalSum() {
-        if (cassetteList != null && !cassetteList.isEmpty()) {
-            totalSum = 0;
-            int nominal;
-            int count;
-
-            for (Cassette cassette : cassetteList) {
-                nominal = cassette.getNominal().getType();
-                count = cassette.getCount();
-                totalSum += nominal * count;
-            }
-        }
-
-        return totalSum;
+    public CashMachine(List<Cassette> cassetteList) {
+        this.cassetteList = cassetteList;
     }
 
     public boolean isOnlineStatus() {
@@ -46,6 +33,14 @@ public class CashMachine implements Cloneable {
 
     @Override
     public CashMachine clone() throws CloneNotSupportedException {
-        return (CashMachine) super.clone();
+        CashMachine cashMachine = (CashMachine) super.clone();
+        List<Cassette> cassetteList = new LinkedList<>();
+
+        for (Cassette cassette : this.cassetteList) {
+            cassetteList.add(cassette.clone());
+        }
+        cashMachine.setCassetteList(cassetteList);
+
+        return cashMachine;
     }
 }
