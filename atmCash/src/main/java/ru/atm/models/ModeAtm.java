@@ -1,4 +1,4 @@
-package ru.core.models;
+package ru.atm.models;
 
 public enum ModeAtm {
     ONLINE("online"),

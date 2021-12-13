@@ -1,9 +1,9 @@
-package ru.core;
+package ru.atm;
 
-import ru.core.models.CashMachine;
-import ru.core.models.Cassette;
-import ru.core.models.GroupAtm;
-import ru.core.models.Nominal;
+import ru.atm.models.CashMachine;
+import ru.atm.models.Cassette;
+import ru.atm.models.Nominal;
+import ru.atm.models.GroupAtm;
 
 import java.util.ArrayList;
 import java.util.List;

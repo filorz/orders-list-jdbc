@@ -1,6 +1,6 @@
-package ru.core.models;
+package ru.atm.models;
 
-import ru.core.exceptions.AtmException;
+import ru.atm.exceptions.AtmException;
 
 import java.util.*;
 import java.util.logging.Logger;
