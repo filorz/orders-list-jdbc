@@ -4,20 +4,10 @@ public class Cassette implements Cloneable {
 
     private Nominal nominal;
     private int count;
-    private boolean statusExtradition;
 
-    public Cassette(Nominal nominal, int count, boolean statusExtradition) {
+    public Cassette(Nominal nominal, int count) {
         this.nominal = nominal;
         this.count = count;
-        this.statusExtradition = statusExtradition;
-    }
-
-    public boolean isStatusExtradition() {
-        return statusExtradition;
-    }
-
-    public void setStatusExtradition(boolean statusExtradition) {
-        this.statusExtradition = statusExtradition;
     }
 
     public Nominal getNominal() {
@@ -38,6 +28,10 @@ public class Cassette implements Cloneable {
 
     @Override
     public Cassette clone() throws CloneNotSupportedException {
-        return (Cassette) super.clone();
+        Cassette cassette = (Cassette) super.clone();
+        cassette.setCount(this.count);
+        cassette.setNominal(this.nominal);
+
+        return cassette;
     }
 }

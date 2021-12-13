@@ -4,8 +4,6 @@ import ru.core.models.CashMachine;
 import ru.core.models.Cassette;
 import ru.core.models.GroupAtm;
 import ru.core.models.Nominal;
-import ru.core.services.CashMachineService;
-import ru.core.services.impl.CashMachineServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +12,13 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) throws CloneNotSupportedException {
 
-        CashMachineService cashMachineService = new CashMachineServiceImpl();
+        Cassette cassette1 = new Cassette(Nominal.RUB_50, 10);
+        Cassette cassette2 = new Cassette(Nominal.RUB_200, 9);
+        Cassette cassette3 = new Cassette(Nominal.RUB_2000, 8);
 
-        Cassette cassette1 = new Cassette(Nominal.RUB_50, 10, false);
-        Cassette cassette2 = new Cassette(Nominal.RUB_200, 9, false);
-        Cassette cassette3 = new Cassette(Nominal.RUB_2000, 10, false);
-
-        Cassette cassette4 = new Cassette(Nominal.RUB_50, 10, false);
-        Cassette cassette5 = new Cassette(Nominal.RUB_200, 9, false);
-        Cassette cassette6 = new Cassette(Nominal.RUB_2000, 10, false);
+        Cassette cassette4 = new Cassette(Nominal.RUB_50, 5);
+        Cassette cassette5 = new Cassette(Nominal.RUB_200, 2);
+        Cassette cassette6 = new Cassette(Nominal.RUB_2000, 5);
 
         List<Cassette> list = new ArrayList<>();
         List<Cassette> list2 = new ArrayList<>();
@@ -47,10 +43,12 @@ public class Main {
 
         GroupAtm groupAtm = new GroupAtm();
         groupAtm.setCashMachineList(cashMachineList);
-        cashMachineService.addSavePoint(groupAtm);
+        groupAtm.addSavePoint();
 
         System.out.println(groupAtm.getActiveSavePoint());
+        System.out.println("Base Status: ");
         for (CashMachine item : groupAtm.getCashMachineList()) {
+            System.out.println("ATM: " + item.getBalanceAmount());
             for (Cassette cassette : item.getCassetteList()) {
                 System.out.println(cassette.getNominal() + " " + cassette.getCount());
             }
@@ -58,42 +56,44 @@ public class Main {
         }
 
 //      Выдавать запрошенную сумму минимальным количеством банкнот или ошибку если сумму нельзя выдать
-        try {
-            Cassette result = cashMachineService.extraditionBySum(groupAtm.getCashMachineList().get(0), 600);
-            cashMachineService.addSavePoint(groupAtm);
-            System.out.println(result.getNominal() + " " + result.getCount());
+        Cassette result = cashMachine.extraditionBySum(600);
+        groupAtm.addSavePoint();
 
-            System.out.println(groupAtm.getActiveSavePoint());
-            for (CashMachine item : groupAtm.getCashMachineList()) {
-                for (Cassette cassette : item.getCassetteList()) {
-                    System.out.println(cassette.getNominal() + " " + cassette.getCount());
-                }
-                System.out.println();
-            }
+        System.out.println(result.getNominal() + " " + result.getCount() + " - Extradition count");
+        System.out.println();
 
-            cashMachineService.rollbackSavePoint(groupAtm);
-
-            System.out.println(groupAtm.getActiveSavePoint());
-            for (CashMachine item : groupAtm.getCashMachineList()) {
-                for (Cassette cassette : item.getCassetteList()) {
-                    System.out.println(cassette.getNominal() + " " + cassette.getCount());
-                }
-                System.out.println();
+        System.out.println(groupAtm.getActiveSavePoint());
+        System.out.println("Extradition status and Save point: ");
+        for (CashMachine item : groupAtm.getCashMachineList()) {
+            System.out.println("ATM: " + item.getBalanceAmount());
+            for (Cassette cassette : item.getCassetteList()) {
+                System.out.println(cassette.getNominal() + " " + cassette.getCount());
             }
             System.out.println();
+        }
 
+        groupAtm.rollbackSavePoint();
+
+        System.out.println(groupAtm.getActiveSavePoint());
+        for (CashMachine item : groupAtm.getCashMachineList()) {
+            System.out.println("ATM: " + item.getBalanceAmount());
+            for (Cassette cassette : item.getCassetteList()) {
+                System.out.println(cassette.getNominal() + " " + cassette.getCount());
+            }
+            System.out.println();
+        }
+        System.out.println();
+
+        System.out.println("All save points: ");
             for (Map.Entry<String, List<CashMachine>> item : groupAtm.getSavePoint().entrySet()) {
                 for (CashMachine value : item.getValue()) {
+                    System.out.println("ATM: " + value.getBalanceAmount());
                     for (Cassette cassette : value.getCassetteList()) {
                         System.out.println(cassette.getNominal() + " " + cassette.getCount());
                     }
                     System.out.println();
                 }
             }
-
-        } catch (IllegalAccessException | CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
 
     }
 }
