@@ -44,6 +44,7 @@ public class Main {
         GroupAtm groupAtm = new GroupAtm();
         groupAtm.setCashMachineList(cashMachineList);
         groupAtm.addSavePoint();
+        groupAtm.addSavePoint();
 
         System.out.println(groupAtm.getActiveSavePoint());
         System.out.println("Base Status: ");

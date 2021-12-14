@@ -1,8 +1,6 @@
 package ru.atm;
 
-
-import org.junit.jupiter.api.BeforeEach;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.*;
 import ru.atm.models.CashMachine;
 import ru.atm.models.Cassette;
 import ru.atm.models.Nominal;
@@ -10,9 +8,9 @@ import ru.atm.models.Nominal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CashMachineTest {
+class CashMachineTest {
 
     public static final int QUERY_SUM = 600;
     private CashMachine cashMachine;
@@ -24,10 +22,7 @@ public class CashMachineTest {
     }
 
     @Test
-    public void testMonitorWorksGreat() {
-        assertNotNull(cassetteListFirst);
-        assertNotNull(cashMachine);
-
+    void testMonitorWorksGreat() {
         long balance = cashMachine.getBalanceAmount() - QUERY_SUM;
         cashMachine.extraditionBySum(QUERY_SUM);
         assertEquals(cashMachine.getBalanceAmount(), balance);
