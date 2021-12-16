@@ -9,7 +9,7 @@ public enum Nominal {
     RUB_100(100),
     RUB_50(50);
 
-    private int type;
+    private final int type;
 
     Nominal(int type) {
         this.type = type;

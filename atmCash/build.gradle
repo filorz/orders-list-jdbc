@@ -26,7 +26,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    include("test.java.ru.atm")
     testLogging {
         events "passed", "skipped", "failed"
     }

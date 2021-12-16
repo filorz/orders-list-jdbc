@@ -2,20 +2,20 @@ package ru.atm.models;
 
 public class Cassette implements Cloneable {
 
-    private Nominal nominal;
+    private Banknote banknote;
     private int count;
 
-    public Cassette(Nominal nominal, int count) {
-        this.nominal = nominal;
+    public Cassette(Banknote banknote, int count) {
+        this.banknote = banknote;
         this.count = count;
     }
 
-    public Nominal getNominal() {
-        return nominal;
+    public Banknote getBanknote() {
+        return banknote;
     }
 
-    public void setNominal(Nominal nominal) {
-        this.nominal = nominal;
+    public void setBanknote(Banknote banknote) {
+        this.banknote = banknote;
     }
 
     public int getCount() {
@@ -30,7 +30,7 @@ public class Cassette implements Cloneable {
     public Cassette clone() throws CloneNotSupportedException {
         Cassette cassette = (Cassette) super.clone();
         cassette.setCount(this.count);
-        cassette.setNominal(this.nominal);
+        cassette.setBanknote(this.banknote);
 
         return cassette;
     }
