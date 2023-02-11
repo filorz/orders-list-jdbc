@@ -29,12 +29,16 @@ allprojects {
             imports {
                 mavenBom("org.springframework.boot:spring-boot-dependencies:2.4.4")
             }
+            dependency("org.testcontainers:junit-jupiter:${Versions.testcontainers}")
         }
     }
 
     configurations.all {
         resolutionStrategy {
             failOnVersionConflict()
+        }
+        resolutionStrategy {
+            force("commons-logging:commons-logging:1.1.1")
         }
     }
 }
@@ -46,9 +50,4 @@ task managedVersions {
             println it
         }
     }
-}
-
-//gradle -q hello
-task hello {
-    println 'Hello world!'
 }
